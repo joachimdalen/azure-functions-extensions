@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+#
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JoachimDalen.AzureFunctions.Extensions", "JoachimDalen.AzureFunctions.Extensions\JoachimDalen.AzureFunctions.Extensions.csproj", "{06B5D579-1673-4B83-BF3C-AD20C921DEF4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C0447612-812F-4D92-8FAA-14F8EC7132F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.FunctionApp", "Integration.FunctionApp\Integration.FunctionApp.csproj", "{3E221860-C5B2-4CD1-B303-F92FAB2FF730}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06B5D579-1673-4B83-BF3C-AD20C921DEF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06B5D579-1673-4B83-BF3C-AD20C921DEF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06B5D579-1673-4B83-BF3C-AD20C921DEF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06B5D579-1673-4B83-BF3C-AD20C921DEF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3E221860-C5B2-4CD1-B303-F92FAB2FF730} = {C0447612-812F-4D92-8FAA-14F8EC7132F0}
+	EndGlobalSection
+EndGlobal
