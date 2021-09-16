@@ -2,6 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
+        <Title>Azure Functions Extensions</Title>
+        <Description>Various extensions for Azure Functions</Description>
+        <Copyright>Joachim Dalen</Copyright>
+        <PackageLicenseUrl>https://github.com/joachimdalen/azure-functions-extensions/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/joachimdalen/azure-functions-extensions</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
     </PropertyGroup>
 
     <ItemGroup>
