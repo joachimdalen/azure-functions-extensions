@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 
 namespace JoachimDalen.AzureFunctions.Extensions.ConfigProviders
 {
-    public class QueryParamBindingConfigProvider : IExtensionConfigProvider
+    public class ConfigProvider : IExtensionConfigProvider
     {
         private readonly ILogger _logger;
 
-        public QueryParamBindingConfigProvider(ILogger logger)
+        public ConfigProvider(ILogger logger)
         {
             _logger = logger;
         }
@@ -17,6 +17,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.ConfigProviders
         public void Initialize(ExtensionConfigContext context)
         {
             context.AddBindingRule<QueryParamAttribute>().Bind(new QueryParamBindingProvider(_logger));
+            context.AddBindingRule<MultipartRequestAttribute>().Bind(new MultipartBindingProvider(_logger));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace JoachimDalen.AzureFunctions.Extensions
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddExtension<QueryParamBindingConfigProvider>();
+            builder.AddExtension<ConfigProvider>();
             return builder;
         }
     }
