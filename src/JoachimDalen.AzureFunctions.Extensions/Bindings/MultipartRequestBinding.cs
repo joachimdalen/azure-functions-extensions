@@ -1,6 +1,9 @@
+using System;
 using System.Threading.Tasks;
+using JoachimDalen.AzureFunctions.Extensions.Attributes;
 using JoachimDalen.AzureFunctions.Extensions.ValueProviders;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.WebApiCompatShim;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.Azure.WebJobs.Host.Protocols;
 using Microsoft.Extensions.Logging;
@@ -9,18 +12,34 @@ namespace JoachimDalen.AzureFunctions.Extensions.Bindings
 {
     public class MultipartRequestBinding<T> : IBinding
     {
-        private readonly ILogger logger;
+        private readonly ILogger _logger;
+        private readonly MultipartRequestAttribute _attribute;
 
-        public MultipartRequestBinding(ILogger logger)
+        public MultipartRequestBinding(ILogger logger, MultipartRequestAttribute attribute)
         {
-            this.logger = logger;
+            _logger = logger;
+            _attribute = attribute;
         }
 
         public Task<IValueProvider> BindAsync(BindingContext context)
         {
-            // Get the HTTP request
-            var request = context.BindingData["req"] as HttpRequest;
-            return Task.FromResult<IValueProvider>(new MultipartRequestValueProvider<T>(request, logger));
+            if (!context.BindingData.ContainsKey(Constants.DefaultRequestKey))
+            {
+                throw new InvalidOperationException("Failed to find request in binding context");
+            }
+
+            if (!context.BindingData.TryGetValue(Constants.DefaultRequestKey, out var requestObject))
+            {
+                throw new InvalidOperationException("Failed to find request in binding context");
+            }
+
+            if (!(requestObject is HttpRequest request))
+            {
+                throw new InvalidOperationException("Failed to find request in binding context");
+            }
+
+            var requestMessage = new HttpRequestMessageFeature(request.HttpContext).HttpRequestMessage;
+            return Task.FromResult<IValueProvider>(new MultipartRequestValueProvider<T>(_attribute, requestMessage, _logger));
         }
 
         public bool FromAttribute => true;

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using JoachimDalen.AzureFunctions.Extensions.ValueProviders;
 using Microsoft.AspNetCore.Http;
@@ -20,8 +21,12 @@ namespace JoachimDalen.AzureFunctions.Extensions.Bindings
 
         public Task<IValueProvider> BindAsync(BindingContext context)
         {
-            // Get the HTTP request
-            var request = context.BindingData["req"] as HttpRequest;
+            if (!context.BindingData.ContainsKey(Constants.DefaultRequestKey))
+            {
+                throw new InvalidOperationException("Failed to find request in binding context");
+            }
+
+            var request = context.BindingData[Constants.DefaultRequestKey] as HttpRequest;
             return Task.FromResult<IValueProvider>(new QueryParamValueProvider<T>(request, _queryParamKey, _logger));
         }
 

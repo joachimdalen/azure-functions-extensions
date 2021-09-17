@@ -1,8 +1,10 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using JoachimDalen.AzureFunctions.Extensions.Attributes;
+using JoachimDalen.AzureFunctions.Extensions.Models;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,11 +13,13 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
 {
     public class MultipartRequestValueProvider<T> : IValueProvider
     {
-        private readonly HttpRequest _request;
+        private readonly MultipartRequestAttribute _attribute;
+        private readonly HttpRequestMessage _request;
         private readonly ILogger _logger;
 
-        public MultipartRequestValueProvider(HttpRequest request, ILogger logger)
+        public MultipartRequestValueProvider(MultipartRequestAttribute attribute, HttpRequestMessage request, ILogger logger)
         {
+            _attribute = attribute;
             _request = request;
             _logger = logger;
         }
@@ -24,14 +28,40 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
         {
             try
             {
-                string requestBody = await new StreamReader(this._request.Body).ReadToEndAsync();
-                T result = JsonConvert.DeserializeObject<T>(requestBody);
-                return result;
+                var contents = (await _request.Content.ReadAsMultipartAsync()).Contents;
+                var dataContent = contents.Where(x => x.HasData())?.FirstOrDefault();
+
+                T dataResult = default;
+                if (dataContent != null)
+                {
+                    var stringContent = await dataContent.ReadAsStringAsync();
+                    dataResult = JsonConvert.DeserializeObject<T>(stringContent);
+                }
+
+                var filesContents = contents.Where(content => content.HasFiles(_attribute.FileName));
+
+                var files = new List<MultipartFile>();
+
+                foreach (var uploadedFile in filesContents)
+                {
+                    var fileName = uploadedFile.Headers?.ContentDisposition?.GetEscapedContentDispositionFileName();
+                    var fileContents = await uploadedFile.ReadAsByteArrayAsync();
+                    files.Add(new MultipartFile
+                    {
+                        FileName = fileName,
+                        Content = fileContents
+                    });
+                }
+
+                return new MultipartRequestData<T>
+                {
+                    Data = dataResult,
+                    Files = files?.ToArray()
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogCritical(ex, "Error deserializing object from body");
-
                 throw ex;
             }
         }
