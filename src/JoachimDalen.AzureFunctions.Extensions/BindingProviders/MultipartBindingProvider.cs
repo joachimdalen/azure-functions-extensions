@@ -15,11 +15,6 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
     {
         private readonly ILogger _logger;
 
-        private static readonly Type[] SupportedTypes =
-        {
-            typeof(MultipartRequestData<>),
-        };
-
         public MultipartBindingProvider(ILogger logger)
         {
             _logger = logger;
@@ -40,15 +35,25 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
                 return Task.FromResult<IBinding>(null);
             }
 
-            var isSupportedTypeBinding = BindingHelpers.MatchParameterType(parameter, SupportedTypes);
-            var isUserTypeBinding = !isSupportedTypeBinding && BindingHelpers.IsValidUserType(parameter.ParameterType);
-            if (!isSupportedTypeBinding && !isUserTypeBinding)
+            if (!BindingHelpers.IsOfGenericType(parameter, typeof(MultipartRequestData<>)))
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
                     "Can't bind MultipartRequestAttribute to type '{0}'.", parameter.ParameterType));
             }
 
-            var dataType = context.Parameter.ParameterType.GetGenericArguments().FirstOrDefault();
+            var dataType = parameter.ParameterType.GetGenericArguments()?.FirstOrDefault();
+            if (dataType == null)
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                    "Can't bind MultipartRequestData to type '{0}'.", parameter.ParameterType));
+            }
+
+            if (!BindingHelpers.IsValidUserType(dataType))
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                    "Can't bind MultipartRequestData to type '{0}'.", dataType));
+            }
+
             var binding = CreateBodyBinding(_logger, dataType, attribute);
             return Task.FromResult(binding);
         }
