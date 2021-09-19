@@ -3,16 +3,16 @@ using System;
 namespace JoachimDalen.AzureFunctions.Extensions.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class QueryParamValue : Attribute
+    public sealed class QueryParamValueAttribute : Attribute
     {
         public string Name { get; }
 
-        public QueryParamValue(string name)
+        public QueryParamValueAttribute(string name)
         {
             Name = name;
         }
 
-        public QueryParamValue()
+        public QueryParamValueAttribute()
         {
         }
     }

@@ -39,7 +39,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
 
                     foreach (var propertyInfo in properties)
                     {
-                        var attribute = propertyInfo.GetCustomAttribute<QueryParamValue>();
+                        var attribute = propertyInfo.GetCustomAttribute<QueryParamValueAttribute>();
                         var name = attribute?.Name ?? propertyInfo.Name;
                         if (!_request.Query.TryGetValue(name, out var queryValues))
                         {
