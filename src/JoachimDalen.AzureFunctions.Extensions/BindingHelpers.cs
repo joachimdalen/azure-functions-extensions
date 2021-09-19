@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -7,7 +6,7 @@ namespace JoachimDalen.AzureFunctions.Extensions
 {
     internal static class BindingHelpers
     {
-        internal static bool MatchParameterType(ParameterInfo parameter, IEnumerable<Type> types)
+        internal static bool MatchParameterType(ParameterInfo parameter, Type[] types)
         {
             if (parameter == null)
             {
@@ -30,6 +29,11 @@ namespace JoachimDalen.AzureFunctions.Extensions
         internal static bool IsValidUserType(Type type)
         {
             return !type.IsInterface && !type.IsPrimitive && type.Namespace != "System";
+        }
+
+        internal static bool IsOfGenericType(ParameterInfo parameter, Type generic)
+        {
+            return parameter.ParameterType.GetGenericTypeDefinition() == generic;
         }
     }
 }

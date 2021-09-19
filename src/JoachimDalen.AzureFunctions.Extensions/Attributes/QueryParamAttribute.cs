@@ -7,6 +7,10 @@ namespace JoachimDalen.AzureFunctions.Extensions.Attributes
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
     public sealed class QueryParamAttribute : Attribute
     {
+        public QueryParamAttribute()
+        {
+        }
+
         public QueryParamAttribute(string name)
         {
             Name = name;

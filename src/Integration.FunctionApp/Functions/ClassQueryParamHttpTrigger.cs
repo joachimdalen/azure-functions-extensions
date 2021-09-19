@@ -9,16 +9,19 @@ using Microsoft.Extensions.Logging;
 
 namespace Integration.FunctionApp.Functions
 {
-    public static class StringQueryParamHttpTrigger
+    public static class ClassQueryParamHttpTrigger
     {
-        [FunctionName(nameof(StringQueryParamHttpTrigger))]
+        [FunctionName(nameof(ClassQueryParamHttpTrigger))]
         public static async Task<IActionResult> RunAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/name")]
-            HttpRequest req, ILogger log, [QueryParam("name")] string name)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/class")]
+            HttpRequest req, ILogger log, [QueryParam] QueryParamValues queryParamContainer)
         {
-            var data = new NameModel
+            var data = new
             {
-                Name = name
+                queryParamContainer.Name,
+                queryParamContainer.Age,
+                queryParamContainer.Id
+                
             };
             return new OkObjectResult(data);
         }

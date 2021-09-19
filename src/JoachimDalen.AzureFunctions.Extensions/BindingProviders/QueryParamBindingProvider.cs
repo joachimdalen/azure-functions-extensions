@@ -19,7 +19,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             typeof(bool),
             typeof(int),
             typeof(string),
-            typeof(object),
+            typeof(object)
         };
 
         public QueryParamBindingProvider(ILogger logger)
@@ -50,15 +50,11 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
                     "Can't bind QueryParamAttribute to type '{0}'.", parameter.ParameterType));
             }
 
-            var binding = CreateBodyBinding(_logger, context.Parameter.ParameterType, attribute);
-            return Task.FromResult(binding);
-        }
+            var type = typeof(QueryParamBinding<>).MakeGenericType(context.Parameter.ParameterType);
+            var binding =
+                (IBinding) Activator.CreateInstance(type, _logger, attribute, isUserTypeBinding, context.Parameter);
 
-        private IBinding CreateBodyBinding(ILogger log, Type T, QueryParamAttribute attribute)
-        {
-            var type = typeof(QueryParamBinding<>).MakeGenericType(T);
-            var aContext = Activator.CreateInstance(type, log, attribute.Name);
-            return (IBinding) aContext;
+            return Task.FromResult(binding);
         }
     }
 }

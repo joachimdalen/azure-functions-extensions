@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
+using JoachimDalen.AzureFunctions.Extensions.Attributes;
 using JoachimDalen.AzureFunctions.Extensions.ValueProviders;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Bindings;
@@ -11,12 +13,17 @@ namespace JoachimDalen.AzureFunctions.Extensions.Bindings
     public class QueryParamBinding<T> : IBinding
     {
         private readonly ILogger _logger;
-        private readonly string _queryParamKey;
+        private readonly QueryParamAttribute _attribute;
+        private readonly ParameterInfo _parameter;
+        private readonly bool _isUserTypeBinding;
 
-        public QueryParamBinding(ILogger logger, string name)
+        public QueryParamBinding(ILogger logger, QueryParamAttribute attribute, bool isUserTypeBinding,
+            ParameterInfo parameter)
         {
             _logger = logger;
-            _queryParamKey = name;
+            _attribute = attribute;
+            _isUserTypeBinding = isUserTypeBinding;
+            _parameter = parameter;
         }
 
         public Task<IValueProvider> BindAsync(BindingContext context)
@@ -27,7 +34,8 @@ namespace JoachimDalen.AzureFunctions.Extensions.Bindings
             }
 
             var request = context.BindingData[Constants.DefaultRequestKey] as HttpRequest;
-            return Task.FromResult<IValueProvider>(new QueryParamValueProvider<T>(request, _queryParamKey, _logger));
+            return Task.FromResult<IValueProvider>(new QueryParamValueProvider<T>(request, _attribute, _parameter,
+                _isUserTypeBinding, _logger));
         }
 
         public bool FromAttribute => true;

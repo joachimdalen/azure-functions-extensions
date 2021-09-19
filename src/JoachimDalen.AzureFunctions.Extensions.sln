@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C0447612
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.FunctionApp", "Integration.FunctionApp\Integration.FunctionApp.csproj", "{3E221860-C5B2-4CD1-B303-F92FAB2FF730}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.FunctionApp.IntegrationTests", "Integration.FunctionApp.IntegrationTests\Integration.FunctionApp.IntegrationTests.csproj", "{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +23,13 @@ Global
 		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E221860-C5B2-4CD1-B303-F92FAB2FF730}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3E221860-C5B2-4CD1-B303-F92FAB2FF730} = {C0447612-812F-4D92-8FAA-14F8EC7132F0}
+		{6837DAE9-0AE4-44CE-8B5D-0CEE6EECD5F0} = {C0447612-812F-4D92-8FAA-14F8EC7132F0}
 	EndGlobalSection
 EndGlobal
