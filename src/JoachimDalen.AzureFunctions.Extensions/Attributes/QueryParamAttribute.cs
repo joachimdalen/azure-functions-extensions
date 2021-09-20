@@ -7,16 +7,27 @@ namespace JoachimDalen.AzureFunctions.Extensions.Attributes
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
     public sealed class QueryParamAttribute : Attribute
     {
-        public QueryParamAttribute()
+        public QueryParamAttribute(string name, bool validate)
+        {
+            Name = name;
+            Validate = validate;
+        }
+
+        public QueryParamAttribute() : this(null, false)
         {
         }
 
-        public QueryParamAttribute(string name)
+        public QueryParamAttribute(string name) : this(name, false)
         {
-            Name = name;
+        }
+
+        public QueryParamAttribute(bool validate) : this(null, validate)
+        {
         }
 
         [AutoResolve]
-        public string Name { get; set; }
+        public string Name { get; }
+
+        public bool Validate { get; }
     }
 }
