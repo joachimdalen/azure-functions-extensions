@@ -1,28 +1,62 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using JoachimDalen.AzureFunctions.Extensions.Models;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace JoachimDalen.AzureFunctions.Extensions
 {
     public static class HttpRequestExtensions
     {
-        public static string GetEscapedContentDispositionFileName(this ContentDispositionHeaderValue headerValue)
+        internal static string GetEscapedContentDispositionFileName(this ContentDispositionHeaderValue headerValue)
         {
             return headerValue?.FileName?.Trim('\"');
         }
 
-        public static string GetEscapedContentDispositionName(this ContentDispositionHeaderValue headerValue)
+        private static string GetEscapedContentDispositionName(this ContentDispositionHeaderValue headerValue)
         {
             return headerValue?.Name?.Trim('\"');
         }
 
-        public static bool HasFiles(this HttpContent content, string fileKey)
+        internal static bool HasFiles(this HttpContent content, string fileKey)
         {
             return content?.Headers?.ContentDisposition?.GetEscapedContentDispositionName() == fileKey;
         }
 
-        public static bool HasData(this HttpContent content)
+        internal static bool HasData(this HttpContent content)
         {
             return content?.Headers?.ContentType?.MediaType == "application/json";
+        }
+
+        public static async Task<HttpRequestBody<T>> GetValidatedBody<T>(this HttpRequestMessage request)
+        {
+            var body = new HttpRequestBody<T>();
+            var bodyString = await request.Content.ReadAsStringAsync();
+            body.Value = string.IsNullOrEmpty(bodyString) ? default : JsonConvert.DeserializeObject<T>(bodyString);
+
+            return GetValidatedBody<T>(bodyString);
+        }
+
+        public static async Task<HttpRequestBody<T>> GetValidatedBody<T>(this HttpRequest request)
+        {
+            var bodyData = new StreamReader(request.Body);
+            bodyData.BaseStream.Seek(0, SeekOrigin.Begin);
+            var bodyString = bodyData.ReadToEnd();
+            return GetValidatedBody<T>(bodyString);
+        }
+
+        private static HttpRequestBody<T> GetValidatedBody<T>(string bodyValue)
+        {
+            var body = new HttpRequestBody<T>();
+            var results = new List<ValidationResult>();
+            body.Value = string.IsNullOrEmpty(bodyValue) ? default : JsonConvert.DeserializeObject<T>(bodyValue);
+            body.IsValid = Validator.TryValidateObject(body.Value, new ValidationContext(body.Value, null, null), results, true);
+            body.ValidationResults = results;
+            return body;
         }
     }
 }
