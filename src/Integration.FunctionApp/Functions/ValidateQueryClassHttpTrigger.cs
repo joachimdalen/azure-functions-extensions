@@ -14,8 +14,9 @@ namespace Integration.FunctionApp.Functions
     {
         [FunctionName(nameof(ValidateQueryClassHttpTrigger))]
         public static async Task<IActionResult> RunAsync(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/class-validate")] HttpRequest req, ILogger log,
-            [QueryParam] QueryParamContainer<QueryParamValuesWithValidation> queryParamContainer)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/class-validate")]
+            HttpRequest req, ILogger log,
+            [QueryParam(true)] QueryParamContainer<QueryParamValuesWithValidation> queryParamContainer)
         {
             if (!queryParamContainer.IsValid)
             {

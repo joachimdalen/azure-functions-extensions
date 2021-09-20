@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using JoachimDalen.AzureFunctions.Extensions.Abstractions;
 using JoachimDalen.AzureFunctions.Extensions.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -54,9 +55,19 @@ namespace JoachimDalen.AzureFunctions.Extensions
             var body = new HttpRequestBody<T>();
             var results = new List<ValidationResult>();
             body.Value = string.IsNullOrEmpty(bodyValue) ? default : JsonConvert.DeserializeObject<T>(bodyValue);
-            body.IsValid = Validator.TryValidateObject(body.Value, new ValidationContext(body.Value, null, null), results, true);
+            body.IsValid = Validator.TryValidateObject(body.Value, new ValidationContext(body.Value, null, null),
+                results, true);
             body.ValidationResults = results;
             return body;
+        }
+
+        internal static IValidatable Validate(this IValidatable validatable, object value)
+        {
+            var results = new List<ValidationResult>();
+            validatable.IsValid = Validator.TryValidateObject(value,
+                new ValidationContext(value, null, null), results, true);
+            validatable.ValidationResults = results;
+            return validatable;
         }
     }
 }

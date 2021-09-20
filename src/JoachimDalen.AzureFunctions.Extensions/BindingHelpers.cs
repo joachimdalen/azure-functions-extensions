@@ -33,6 +33,11 @@ namespace JoachimDalen.AzureFunctions.Extensions
 
         internal static bool IsOfGenericType(ParameterInfo parameter, Type generic)
         {
+            if (parameter.ParameterType.IsGenericType == false)
+            {
+                return false;
+            }
+
             return parameter.ParameterType.GetGenericTypeDefinition() == generic;
         }
     }

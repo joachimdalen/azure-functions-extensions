@@ -12,7 +12,7 @@ namespace Integration.FunctionApp.Functions
     public static class ValidateBodyHttpTrigger
     {
         [FunctionName(nameof(ValidateBodyHttpTrigger))]
-        public static async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = "/test/validate")] HttpRequest req,
+        public static async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = "test/validate")] HttpRequest req,
             ILogger log)
         {
             var reqData = await req.GetValidatedBody<BodyWithValidation>();

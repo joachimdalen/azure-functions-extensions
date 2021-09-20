@@ -8,7 +8,7 @@ namespace Integration.FunctionApp.Models
     {
         [QueryParamValue]
         public Guid? Id { get; set; }
-
+        
         [QueryParamValue]
         [Required]
         public string Name { get; set; }
@@ -16,5 +16,9 @@ namespace Integration.FunctionApp.Models
         [QueryParamValue]
         [Required]
         public int Age { get; set; }
+        
+        [QueryParamValue]
+        [Required]
+        public string Info { get; set; }
     }
 }

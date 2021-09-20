@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using JoachimDalen.AzureFunctions.Extensions.Abstractions;
 using JoachimDalen.AzureFunctions.Extensions.Attributes;
+using JoachimDalen.AzureFunctions.Extensions.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.Extensions.Logging;
@@ -34,8 +36,22 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
             {
                 if (_isUserTypeBinding)
                 {
-                    var container = Activator.CreateInstance(_parameter.ParameterType);
-                    var properties = _parameter.ParameterType.GetProperties();
+                    var isContainerType = BindingHelpers.IsOfGenericType(_parameter, typeof(QueryParamContainer<>));
+                    object container = null;
+                    PropertyInfo[] properties;
+                    Type containerValueType = null;
+                    if (isContainerType)
+                    {
+                        containerValueType = _parameter.ParameterType.GetGenericArguments()?.FirstOrDefault();
+                        container = Activator.CreateInstance(containerValueType);
+                        properties = containerValueType.GetProperties();
+                    }
+                    else
+                    {
+                        container = Activator.CreateInstance(_parameter.ParameterType);
+                        properties = _parameter.ParameterType.GetProperties();
+                    }
+
 
                     foreach (var propertyInfo in properties)
                     {
@@ -57,6 +73,26 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
                         {
                             propertyInfo.SetValue(container, convertedValue);
                         }
+                    }
+
+                    if (isContainerType)
+                    {
+                        var type = typeof(QueryParamContainer<>).MakeGenericType(containerValueType);
+                        var containerInstance = Activator.CreateInstance(type);
+
+                        if (_attribute.Validate && containerInstance is IValidatable validatable)
+                        {
+                            validatable.Validate(container);
+                        }
+                        
+                        
+                        var param = type.GetProperty("Params");
+                        if (param != null && param.CanWrite)
+                        {
+                            param.SetValue(containerInstance, container);
+                        }
+
+                        return containerInstance;
                     }
 
                     return container;

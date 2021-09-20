@@ -17,7 +17,7 @@ namespace Integration.FunctionApp.IntegrationTests.Functions
         [TestMethod]
         [StartFunctions(nameof(MultipartHttpTrigger))]
         [UseBlobContainers("multipart-files")]
-        public async Task ClassQueryParamHttpTrigger_QueryParams_ReturnsValue()
+        public async Task MultipartHttpTrigger_ContentWithFiles_ReturnsValue()
         {
             var multipart = new MultipartFormDataContent();
             var jsonData = new MultipartRequestBodyData
