@@ -8,6 +8,8 @@
         <PackageLicenseUrl>https://github.com/joachimdalen/azure-functions-extensions/blob/master/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/joachimdalen/azure-functions-extensions</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>1.0.0-preview</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
