@@ -40,6 +40,9 @@ stages:
             inputs:
               targetType: inline
               script: npm i -g azure-functions-core-tools@3
+          - task: NuGetAuthenticate@0
+            inputs:
+              nuGetServiceConnections: 'GitHub Packages (JoachimDalen)'
           - task: DotNetCoreCLI@2
             displayName: "Restore project dependencies"
             inputs:
