@@ -52,6 +52,8 @@ stages:
             inputs:
               command: 'restore'
               projects: '**/*.csproj'
+              feedsToUse: 'config'
+              nugetConfigPath: 'src/nuget.config'
               verbosityRestore: 'Normal'
           - task: DotNetCoreCLI@2
             displayName: "Build the project - $(BUILD_CONFIGURATION)"
