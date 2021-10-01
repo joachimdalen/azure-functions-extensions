@@ -46,7 +46,7 @@ stages:
             displayName: 'Add GitHub Nuget feed'
             inputs:
               targetType: inline
-              script: dotnet nuget add source --username $(GITHUB_PACKAGES_USERNAME) --password $(GITHUB_PACKAGES_TOKEN) --store-password-in-clear-text --name github "https://nuget.pkg.github.com/GITHUB_PACKAGES_SOURCE/index.json"
+              script: dotnet nuget add source --username $(GITHUB_PACKAGES_USERNAME) --password $(GITHUB_PACKAGES_TOKEN) --store-password-in-clear-text --name github "https://nuget.pkg.github.com/$(GITHUB_PACKAGES_SOURCE)/index.json"
           - task: DotNetCoreCLI@2
             displayName: "Restore project dependencies"
             inputs:
