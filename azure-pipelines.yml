@@ -42,18 +42,11 @@ stages:
             inputs:
               targetType: inline
               script: npm i -g azure-functions-core-tools@3
-          - task: Bash@3
-            displayName: 'Add GitHub Nuget feed'
-            inputs:
-              targetType: inline
-              script: dotnet nuget add source --username $(GITHUB_PACKAGES_USERNAME) --password $(GITHUB_PACKAGES_TOKEN) --store-password-in-clear-text --name github "https://nuget.pkg.github.com/$(GITHUB_PACKAGES_SOURCE)/index.json"
           - task: DotNetCoreCLI@2
             displayName: "Restore project dependencies"
             inputs:
               command: 'restore'
               projects: '**/*.csproj'
-              feedsToUse: 'config'
-              nugetConfigPath: 'src/nuget.config'
               verbosityRestore: 'Normal'
           - task: DotNetCoreCLI@2
             displayName: "Build the project - $(BUILD_CONFIGURATION)"
