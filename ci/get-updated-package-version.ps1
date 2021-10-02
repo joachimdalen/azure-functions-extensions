@@ -1,7 +1,7 @@
 param ([Switch] $IncreaseMajor, [Switch] $IncreaseMinor, [Switch] $IncreasePatch)
 
 if (!(Get-Module -ListAvailable -Name SomeModule)) {
-    Install-Module -Name SemVerPS
+    Install-Module -Name SemVerPS -Force
 } 
 
 
