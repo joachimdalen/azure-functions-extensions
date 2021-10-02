@@ -92,25 +92,24 @@ stages:
               configuration: '$(BUILD_CONFIGURATION)'
               packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
               nobuild: true
-              includesymbols: true
               versioningScheme: 'byEnvVar'
               versionEnvVar: 'SETVERSION_UPDATED_PACKAGE_VERSION'
           - task: Bash@3
             inputs:
               targetType: inline
               script: ls $(Build.ArtifactStagingDirectory)/nuget
-          # - task: DotNetCoreCLI@2
-          #   displayName: "Run Tests"
-          #   env:
-          #     AFTU_RUN_AZURITE: true
-          #     AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
-          #     AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
-          #     AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
-          #   inputs:
-          #     command: "test"
-          #     projects: "**/*Tests/*IntegrationTests.csproj"
-          #     arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
-          #     testRunTitle: "Integration Tests"
+          - task: DotNetCoreCLI@2
+            displayName: "Run Tests"
+            env:
+              AFTU_RUN_AZURITE: true
+              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
+              AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
+              AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
+            inputs:
+              command: "test"
+              projects: "**/*Tests/*IntegrationTests.csproj"
+              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
+              testRunTitle: "Integration Tests"
           - task: Bash@3
             condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
             inputs:
@@ -129,3 +128,24 @@ stages:
               targetPath: "$(Build.ArtifactStagingDirectory)/aftu"
               artifact: "aftu-logs"
               publishLocation: "pipeline"
+  - stage: publish_nuget
+    displayName: 'Publish package'
+    dependsOn: 'buildAndTest'
+    jobs:
+      - deployment:
+        displayName: 'Publish package'
+        environment: 'nuget-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - download: current
+                  artifact: 'nuget-package'
+                - task: DotNetCoreCLI@2
+                  displayName: 'Push nuget package'
+                  inputs:
+                    command: 'push'
+                    packagesToPush: '$(Pipeline.Workspace)/*.nupkg'
+                    nuGetFeedType: 'external'
+                    publishFeedCredentials: 'nuget-azure-functions'
