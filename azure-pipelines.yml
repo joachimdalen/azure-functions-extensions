@@ -16,7 +16,18 @@ parameters:
     type: string
     displayName: 'Package Version'
     default: ''
-
+  - name: "INCREASE_MAJOR"
+    type: boolean
+    default: false
+    displayName: "Increase Major Version"
+  - name: "INCREASE_MINOR"
+    type: boolean
+    default: false
+    displayName: "Increase Minor Version"
+  - name: "INCREASE_PATCH"
+    type: boolean
+    default: false
+    displayName: "Increase Patch Version"
 variables:
   BUILD_CONFIGURATION: "Release"
 
@@ -56,26 +67,46 @@ stages:
               command: "build"
               arguments: "--no-restore --configuration $(BUILD_CONFIGURATION)"
               projects: "**/*.csproj"
-          - task: DotNetCoreCLI@2
-            displayName: "Run Tests"
-            env:
-              AFTU_RUN_AZURITE: true
-              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
-              AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
-              AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
+          - task: PowerShell@2
             inputs:
-              command: "test"
-              projects: "**/*Tests/*IntegrationTests.csproj"
-              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
-              testRunTitle: "Integration Tests"
+              filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
+              arguments: '-IncreaseMajor $(INCREASE_MAJOR) -IncreaseMinor $(INCREASE_MINOR) -IncreasePatch $(INCREASE_PATCH)'
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(Build.SourcesDirectory)/src/JoachimDalen.AzureFunctions.Extensions/JoachimDalen.AzureFunctions.Extensions.csproj'
+              packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
+              nobuild: true
+              includesymbols: true
+              versioningScheme: 'byEnvVar'
+              versionEnvVar: 'UPDATED_PACKAGE_VERSION'
+          - task: Bash@3
+            inputs:
+              targetType: inline
+              script: ls $(Build.ArtifactStagingDirectory)/nuget
+          # - task: DotNetCoreCLI@2
+          #   displayName: "Run Tests"
+          #   env:
+          #     AFTU_RUN_AZURITE: true
+          #     AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
+          #     AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
+          #     AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
+          #   inputs:
+          #     command: "test"
+          #     projects: "**/*Tests/*IntegrationTests.csproj"
+          #     arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
+          #     testRunTitle: "Integration Tests"
           - task: Bash@3
             condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
             inputs:
               targetType: "inline"
-              script: "cp -r /tmp/aftu $(Pipeline.Workspace)"
+              script: "cp -r /tmp/aftu $(Build.ArtifactStagingDirectory)"
           - task: PublishPipelineArtifact@1
             condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
             inputs:
-              targetPath: "$(Pipeline.Workspace)/aftu"
+              targetPath: "$(Build.ArtifactStagingDirectory)/aftu"
               artifact: "aftu-logs"
               publishLocation: "pipeline"
