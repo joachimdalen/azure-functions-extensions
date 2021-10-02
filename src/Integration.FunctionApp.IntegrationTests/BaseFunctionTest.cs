@@ -12,8 +12,6 @@ namespace Integration.FunctionApp.IntegrationTests
         {
             var settings = new TestUtilsSettings
             {
-                UseAzuriteStorage = false,
-                PersistAzureContainers = true,
                 UseAzuriteStorage = true,
                 PersistAzureContainers = false,
                 ClearStorageAfterRun = true,
