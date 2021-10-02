@@ -12,7 +12,7 @@ parameters:
     type: boolean
     default: true
     displayName: "Run Azurite in silent mode"
-  - name: PACKAGE_VERSION
+  - name: UPDATED_PACKAGE_VERSION
     type: string
     displayName: 'Package Version'
     default: 'not-set'
@@ -68,10 +68,10 @@ stages:
               arguments: "--no-restore --configuration $(BUILD_CONFIGURATION)"
               projects: "**/*.csproj"
           - task: PowerShell@2
-            condition: ne(variables.PACKAGE_VERSION, 'not-set')
+            condition: eq(parameters.UPDATED_PACKAGE_VERSION, 'not-set')
             inputs:
               filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
-              arguments: '-IncreaseMajor $(INCREASE_MAJOR) -IncreaseMinor $(INCREASE_MINOR) -IncreasePatch $(INCREASE_PATCH)'
+              arguments: '-IncreaseMajor ${{ parameters.INCREASE_MAJOR }} -IncreaseMinor ${{ parameters.INCREASE_MINOR }} -IncreasePatch ${{ parameters.INCREASE_PATCH }}'
               failOnStderr: true
               showWarnings: true
               pwsh: true
