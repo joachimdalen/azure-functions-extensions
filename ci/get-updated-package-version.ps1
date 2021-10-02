@@ -1,4 +1,4 @@
-param ([bool] $IncreaseMajor, [bool] $IncreaseMinor, [bool] $IncreasePatch, [string] $SelectedVersion)
+param ([bool] $IncreaseMajor, [bool] $IncreaseMinor, [bool] $IncreasePatch, [string] $SelectedVersion, [string] $PackageName)
 
 if ($SelectedVersion -ne "not-set") {
     Write-Host "Version set manually";
@@ -12,7 +12,7 @@ else {
 
     Import-Module -Name SemVerPS;
     
-    $endpointUri = "https://azuresearch-usnc.nuget.org/query?q=JoachimDalen.AzureFunctions.TestUtils&prerelease=true";
+    $endpointUri = "https://azuresearch-usnc.nuget.org/query?q=$PackageName&prerelease=true";
     $response = Invoke-WebRequest -Uri $endpointUri -UseBasicParsing
 
     if ($response.StatusCode -ne 200) {
