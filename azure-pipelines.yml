@@ -77,14 +77,6 @@ stages:
               failOnStderr: true
               showWarnings: true
               pwsh: true
-          - task: Bash@3
-            inputs:
-              targetType: inline
-              script: |
-                echo $(UPDATED_PACKAGE_VERSION)
-                echo $UPDATED_PACKAGE_VERSION
-                echo $(SetVersion.UPDATED_PACKAGE_VERSION)
-                echo $SETVERSION_UPDATED_PACKAGE_VERSION
           - task: DotNetCoreCLI@2
             displayName: 'Pack Nuget - $(BUILD_CONFIGURATION)'
             inputs:
@@ -95,10 +87,6 @@ stages:
               nobuild: true
               versioningScheme: 'byEnvVar'
               versionEnvVar: 'SETVERSION_UPDATED_PACKAGE_VERSION'
-          - task: Bash@3
-            inputs:
-              targetType: inline
-              script: ls $(Build.ArtifactStagingDirectory)/nuget
           - task: DotNetCoreCLI@2
             displayName: "Run Tests"
             env:
