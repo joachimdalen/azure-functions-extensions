@@ -12,7 +12,6 @@ else {
 
     Import-Module -Name SemVerPS;
     
-    
     $endpointUri = "https://azuresearch-usnc.nuget.org/query?q=JoachimDalen.AzureFunctions.TestUtils&prerelease=true";
     $response = Invoke-WebRequest -Uri $endpointUri -UseBasicParsing
 
@@ -26,18 +25,12 @@ else {
     if ($null -eq $body) {
         Write-Error "Body is null";
         return;
-    }else{
-        Write-Host $body;
     }
 
     $data = ConvertFrom-Json -InputObject $body;
-    Write-Host $data;
-
     $version = $data[0].data.versions[-1].version;
-    Write-Host $version;
-
     $semVer = ConvertTo-SemVer -Version $version;
-    Write-Host $semVer;
+
 
     Write-Host "Found existing package version $semVer";
     
@@ -59,7 +52,7 @@ else {
         $patch = $patch + 1;
     }
     
-    $newVersion = [Semver.SemVersion]::New($sem.Major, $sem.Minor, $sem.Patch + 1, $sem.Prerelease)
+    $newVersion = [Semver.SemVersion]::New($major, $minor, $patch, $semVer.Prerelease)
     
     Write-Host "Setting new version $newVersion"
     Write-Output "##vso[task.setvariable variable=UPDATED_PACKAGE_VERSION;isOutput=true]$newVersion"
