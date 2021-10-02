@@ -30,6 +30,7 @@ parameters:
     displayName: "Increase Patch Version"
 variables:
   BUILD_CONFIGURATION: "Release"
+  PACKAGE_NAME: 'JoachimDalen.AzureFunctions.Extensions'
   isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
 
 stages:
@@ -73,7 +74,7 @@ stages:
             name: SetVersion
             inputs:
               filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
-              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }}'
+              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }} -PackageName $(PACKAGE_NAME)'
               failOnStderr: true
               showWarnings: true
               pwsh: true
