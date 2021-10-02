@@ -71,7 +71,7 @@ stages:
             name: SetVersion
             inputs:
               filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
-              arguments: '-IncreaseMajor ${{ parameters.INCREASE_MAJOR }} -IncreaseMinor ${{ parameters.INCREASE_MINOR }} -IncreasePatch ${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }}'
+              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }}'
               failOnStderr: true
               showWarnings: true
               pwsh: true
@@ -87,6 +87,7 @@ stages:
             inputs:
               command: 'pack'
               packagesToPack: '$(Build.SourcesDirectory)/src/JoachimDalen.AzureFunctions.Extensions/JoachimDalen.AzureFunctions.Extensions.csproj'
+              configuration: '$(BUILD_CONFIGURATION)'
               packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
               nobuild: true
               includesymbols: true

@@ -1,4 +1,4 @@
-param ([Switch] $IncreaseMajor, [Switch] $IncreaseMinor, [Switch] $IncreasePatch, [string] $SelectedVersion)
+param ([bool] $IncreaseMajor, [bool] $IncreaseMinor, [bool] $IncreasePatch, [string] $SelectedVersion)
 
 if ($SelectedVersion -ne "not-set") {
     Write-Host "Version set manually";
@@ -9,11 +9,25 @@ else {
         Write-Host "Installing SemVerPS";
         Install-Module -Name SemVerPS -Force
     } 
+
+    Import-Module -Name SemVerPS;
     
     
     $endpointUri = "https://azuresearch-usnc.nuget.org/query?q=JoachimDalen.AzureFunctions.TestUtils&prerelease=true";
-    $body = (Invoke-WebRequest -Uri $endpointUri).Content
-    
+    $response = Invoke-WebRequest -Uri $endpointUri -UseBasicParsing
+
+    if ($response.StatusCode -ne 200) {
+        Write-Error "Request failed $response";
+        return;
+    }
+
+    $body = $response.Content;
+
+    if ($null -eq $body) {
+        Write-Error "Body is null";
+        return;
+    }
+
     $data = ConvertFrom-Json -InputObject $body;
     $version = $data[0].data.versions[-1].version;
     $semVer = ConvertTo-SemVer -Version $version;
