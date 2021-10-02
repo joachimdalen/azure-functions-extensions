@@ -42,6 +42,11 @@ stages:
             inputs:
               targetType: inline
               script: npm i -g azure-functions-core-tools@3
+          - task: UseDotNet@2
+            displayName: 'Use DotNet'
+            inputs:
+              packageType: 'sdk'
+              version: '3.x'
           - task: DotNetCoreCLI@2
             displayName: "Restore project dependencies"
             inputs:
