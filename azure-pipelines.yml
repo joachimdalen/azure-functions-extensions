@@ -12,7 +12,7 @@ parameters:
     type: boolean
     default: true
     displayName: "Run Azurite in silent mode"
-  - name: UPDATED_PACKAGE_VERSION
+  - name: SELECTED_PACKAGE_VERSION
     type: string
     displayName: 'Package Version'
     default: 'not-set'
@@ -68,11 +68,10 @@ stages:
               arguments: "--no-restore --configuration $(BUILD_CONFIGURATION)"
               projects: "**/*.csproj"
           - task: PowerShell@2
-            condition: eq('${{ parameters.UPDATED_PACKAGE_VERSION }}', 'not-set')
             name: SetVersion
             inputs:
               filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
-              arguments: '-IncreaseMajor ${{ parameters.INCREASE_MAJOR }} -IncreaseMinor ${{ parameters.INCREASE_MINOR }} -IncreasePatch ${{ parameters.INCREASE_PATCH }}'
+              arguments: '-IncreaseMajor ${{ parameters.INCREASE_MAJOR }} -IncreaseMinor ${{ parameters.INCREASE_MINOR }} -IncreasePatch ${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }}'
               failOnStderr: true
               showWarnings: true
               pwsh: true
@@ -83,7 +82,7 @@ stages:
                 echo $(UPDATED_PACKAGE_VERSION)
                 echo $UPDATED_PACKAGE_VERSION
                 echo $(SetVersion.UPDATED_PACKAGE_VERSION)
-                echo $SET_VERSION_UPDATED_PACKAGE_VERSION
+                echo $SETVERSION_UPDATED_PACKAGE_VERSION
           - task: DotNetCoreCLI@2
             inputs:
               command: 'pack'
@@ -92,7 +91,7 @@ stages:
               nobuild: true
               includesymbols: true
               versioningScheme: 'byEnvVar'
-              versionEnvVar: 'UPDATED_PACKAGE_VERSION'
+              versionEnvVar: 'SETVERSION_UPDATED_PACKAGE_VERSION'
           - task: Bash@3
             inputs:
               targetType: inline
