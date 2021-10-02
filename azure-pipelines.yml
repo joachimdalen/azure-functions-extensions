@@ -10,16 +10,18 @@ parameters:
     displayName: "Write logfiles"
   - name: "AZURITE_SILENT"
     type: boolean
-    default: false
+    default: true
     displayName: "Run Azurite in silent mode"
+  - name: PACKAGE_VERSION
+    type: string
+    displayName: 'Package Version'
+    default: ''
 
 variables:
-  BUILD_CONFIGURATION: "Debug"
+  BUILD_CONFIGURATION: "Release"
 
 stages:
   - stage: buildAndTest
-    variables:
-      - group: jd-github
     displayName: "Build & Test"
     jobs:
       - job: "Build"
@@ -58,6 +60,7 @@ stages:
             displayName: "Run Tests"
             env:
               AFTU_RUN_AZURITE: true
+              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
               AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
               AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
             inputs:
