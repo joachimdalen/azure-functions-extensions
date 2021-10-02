@@ -18,6 +18,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.ConfigProviders
         {
             context.AddBindingRule<QueryParamAttribute>().Bind(new QueryParamBindingProvider(_logger));
             context.AddBindingRule<MultipartRequestAttribute>().Bind(new MultipartBindingProvider(_logger));
+            context.AddBindingRule<RequestValueAttribute>().Bind(new RequestValueBindingProvider(_logger));
         }
     }
 }
