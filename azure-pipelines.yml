@@ -30,6 +30,7 @@ parameters:
     displayName: "Increase Patch Version"
 variables:
   BUILD_CONFIGURATION: "Release"
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
 
 stages:
   - stage: buildAndTest
@@ -130,6 +131,7 @@ stages:
               publishLocation: "pipeline"
   - stage: publish_nuget
     displayName: 'Publish package'
+    condition: eq(variables.isMaster, true)
     dependsOn: 'buildAndTest'
     jobs:
       - deployment:
