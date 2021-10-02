@@ -12,6 +12,7 @@ namespace Integration.FunctionApp.IntegrationTests
         {
             var settings = new TestUtilsSettings
             {
+                FuncAppPath = "../../../../Integration.FunctionApp/bin/Debug/netcoreapp3.1",
                 UseAzuriteStorage = true,
                 PersistAzureContainers = false,
                 ClearStorageAfterRun = true,
