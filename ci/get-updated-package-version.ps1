@@ -29,4 +29,4 @@ if($IncreasePatch){
 
 
 $newVersion = [Semver.SemVersion]::New($sem.Major, $sem.Minor, $sem.Patch + 1, $sem.Prerelease)
-Write-Host "##vso[task.setvariable variable=PACKAGE_VERSION;isOutput=true]$newVersion"
+Write-Output "##vso[task.setvariable variable=UPDATED_PACKAGE_VERSION;isOutput=true]$newVersion"
