@@ -148,6 +148,6 @@ stages:
                   displayName: 'Push nuget package'
                   inputs:
                     command: 'push'
-                    packagesToPush: '$(Pipeline.Workspace)/*.nupkg'
+                    packagesToPush: '$(Pipeline.Workspace)/nuget-package/*.nupkg'
                     nuGetFeedType: 'external'
                     publishFeedCredentials: 'nuget-azure-functions'
