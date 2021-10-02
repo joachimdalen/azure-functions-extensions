@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AzureFunctions.TestUtils.Attributes;
+using JoachimDalen.AzureFunctions.TestUtils.Attributes;
 using Integration.FunctionApp.Functions;
 using Integration.FunctionApp.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

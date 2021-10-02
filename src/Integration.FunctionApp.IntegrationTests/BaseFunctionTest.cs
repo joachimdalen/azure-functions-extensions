@@ -1,5 +1,5 @@
-using AzureFunctions.TestUtils;
-using AzureFunctions.TestUtils.Settings;
+using JoachimDalen.AzureFunctions.TestUtils;
+using JoachimDalen.AzureFunctions.TestUtils.Settings;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Integration.FunctionApp.IntegrationTests
@@ -14,7 +14,9 @@ namespace Integration.FunctionApp.IntegrationTests
             {
                 UseAzuriteStorage = false,
                 PersistAzureContainers = true,
-                ClearStorageAfterRun = false,
+                UseAzuriteStorage = true,
+                PersistAzureContainers = false,
+                ClearStorageAfterRun = true,
                 WriteLog = true,
                 RunAzurite = false
             };
