@@ -26,12 +26,19 @@ else {
     if ($null -eq $body) {
         Write-Error "Body is null";
         return;
+    }else{
+        Write-Host $body;
     }
 
     $data = ConvertFrom-Json -InputObject $body;
+    Write-Host $data;
+
     $version = $data[0].data.versions[-1].version;
+    Write-Host $version;
+
     $semVer = ConvertTo-SemVer -Version $version;
-    
+    Write-Host $semVer;
+
     Write-Host "Found existing package version $semVer";
     
     $major = $semVer.Major;
