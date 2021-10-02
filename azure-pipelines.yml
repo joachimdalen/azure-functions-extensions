@@ -1,0 +1,142 @@
+trigger: none
+
+pool:
+  vmImage: "ubuntu-latest"
+
+parameters:
+  - name: "WRITE_LOG"
+    type: boolean
+    default: false
+    displayName: "Write logfiles"
+  - name: "AZURITE_SILENT"
+    type: boolean
+    default: true
+    displayName: "Run Azurite in silent mode"
+  - name: SELECTED_PACKAGE_VERSION
+    type: string
+    displayName: 'Package Version'
+    default: 'not-set'
+  - name: "INCREASE_MAJOR"
+    type: boolean
+    default: false
+    displayName: "Increase Major Version"
+  - name: "INCREASE_MINOR"
+    type: boolean
+    default: false
+    displayName: "Increase Minor Version"
+  - name: "INCREASE_PATCH"
+    type: boolean
+    default: false
+    displayName: "Increase Patch Version"
+variables:
+  BUILD_CONFIGURATION: "Release"
+  PACKAGE_NAME: 'JoachimDalen.AzureFunctions.Extensions'
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
+stages:
+  - stage: buildAndTest
+    displayName: "Build & Test"
+    jobs:
+      - job: "Build"
+        displayName: "Build job"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: NodeTool@0
+            displayName: "Install nodeJS"
+            inputs:
+              versionSpec: "13.x"
+              checkLatest: true
+          - task: Bash@3
+            displayName: "Install Azurite"
+            inputs:
+              targetType: inline
+              script: npm i -g azurite
+          - task: Bash@3
+            displayName: "Install Core Tools"
+            inputs:
+              targetType: inline
+              script: npm i -g azure-functions-core-tools@3
+          - task: DotNetCoreCLI@2
+            displayName: "Restore project dependencies"
+            inputs:
+              command: 'restore'
+              projects: '**/*.csproj'
+              verbosityRestore: 'Normal'
+          - task: DotNetCoreCLI@2
+            displayName: "Build the project - $(BUILD_CONFIGURATION)"
+            inputs:
+              command: "build"
+              arguments: "--no-restore --configuration $(BUILD_CONFIGURATION)"
+              projects: "**/*.csproj"
+          - task: PowerShell@2
+            displayName: 'Set package version'
+            name: SetVersion
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
+              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }} -PackageName $(PACKAGE_NAME)'
+              failOnStderr: true
+              showWarnings: true
+              pwsh: true
+          - task: DotNetCoreCLI@2
+            displayName: 'Pack Nuget - $(BUILD_CONFIGURATION)'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(Build.SourcesDirectory)/src/JoachimDalen.AzureFunctions.Extensions/JoachimDalen.AzureFunctions.Extensions.csproj'
+              configuration: '$(BUILD_CONFIGURATION)'
+              packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
+              nobuild: true
+              versioningScheme: 'byEnvVar'
+              versionEnvVar: 'SETVERSION_UPDATED_PACKAGE_VERSION'
+          - task: DotNetCoreCLI@2
+            displayName: "Run Tests"
+            env:
+              AFTU_RUN_AZURITE: true
+              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
+              AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
+              AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
+            inputs:
+              command: "test"
+              projects: "**/*Tests/*IntegrationTests.csproj"
+              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
+              testRunTitle: "Integration Tests"
+          - task: Bash@3
+            condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
+            inputs:
+              targetType: "inline"
+              script: "cp -r /tmp/aftu $(Build.ArtifactStagingDirectory)"
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Nuget'
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/nuget"
+              artifact: "nuget-package"
+              publishLocation: "pipeline"
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish test logs'
+            condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/aftu"
+              artifact: "aftu-logs"
+              publishLocation: "pipeline"
+  - stage: publish_nuget
+    displayName: 'Publish package'
+    condition: eq(variables.isMaster, true)
+    dependsOn: 'buildAndTest'
+    jobs:
+      - deployment:
+        displayName: 'Publish package'
+        environment: 'nuget-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - download: current
+                  artifact: 'nuget-package'
+                - task: DotNetCoreCLI@2
+                  displayName: 'Push nuget package'
+                  inputs:
+                    command: 'push'
+                    packagesToPush: '$(Pipeline.Workspace)/nuget-package/*.nupkg'
+                    nuGetFeedType: 'external'
+                    publishFeedCredentials: 'nuget-azure-functions'
