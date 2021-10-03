@@ -24,6 +24,12 @@ namespace Integration.FunctionApp.Functions
             [Blob("multipart-files", FileAccess.Write)]
             CloudBlobContainer blobContainer)
         {
+            if (!multipartRequest.IsValid)
+            {
+                return new BadRequestObjectResult(multipartRequest.ValidationResults);
+            }
+            
+            
             foreach (var requestFile in multipartRequest.Files)
             {
                 var blob = blobContainer.GetBlockBlobReference(requestFile.FileName);
