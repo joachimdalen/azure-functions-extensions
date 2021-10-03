@@ -69,6 +69,25 @@ stages:
               command: "build"
               arguments: "--no-restore --configuration $(BUILD_CONFIGURATION)"
               projects: "**/*.csproj"
+          - task: DotNetCoreCLI@2
+            displayName: "Run Unit Tests"
+            inputs:
+              command: "test"
+              projects: "**/*Tests/*UnitTests.csproj"
+              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
+              testRunTitle: "Unit Tests"
+          - task: DotNetCoreCLI@2
+            displayName: "Run Integration Tests"
+            env:
+              AFTU_RUN_AZURITE: true
+              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
+              AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
+              AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
+            inputs:
+              command: "test"
+              projects: "**/*Tests/*IntegrationTests.csproj"
+              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
+              testRunTitle: "Integration Tests"
           - task: PowerShell@2
             displayName: 'Set package version'
             name: SetVersion
@@ -88,18 +107,6 @@ stages:
               nobuild: true
               versioningScheme: 'byEnvVar'
               versionEnvVar: 'SETVERSION_UPDATED_PACKAGE_VERSION'
-          - task: DotNetCoreCLI@2
-            displayName: "Run Tests"
-            env:
-              AFTU_RUN_AZURITE: true
-              AFTU_FUNC_APP_PATH: '../../../../Integration.FunctionApp/bin/Release/netcoreapp3.1'
-              AFTU_WRITE_LOG: ${{ parameters.WRITE_LOG }}
-              AFTU_AZURITE_SILENT: ${{ parameters.AZURITE_SILENT }}
-            inputs:
-              command: "test"
-              projects: "**/*Tests/*IntegrationTests.csproj"
-              arguments: '--configuration $(BUILD_CONFIGURATION)  --collect "Code coverage"'
-              testRunTitle: "Integration Tests"
           - task: Bash@3
             condition: and(always(), eq(${{ parameters.WRITE_LOG }}, true))
             inputs:
