@@ -17,7 +17,8 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
         private readonly HttpRequestMessage _request;
         private readonly ILogger _logger;
 
-        public MultipartRequestValueProvider(MultipartRequestAttribute attribute, HttpRequestMessage request, ILogger logger)
+        public MultipartRequestValueProvider(MultipartRequestAttribute attribute, HttpRequestMessage request,
+            ILogger logger)
         {
             _attribute = attribute;
             _request = request;
@@ -26,44 +27,43 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
 
         public async Task<object> GetValueAsync()
         {
-            try
+            var contents = (await _request.Content.ReadAsMultipartAsync()).Contents;
+            var dataContent = contents.Where(x => x.HasData())?.FirstOrDefault();
+
+            T dataResult = default;
+            if (dataContent != null)
             {
-                var contents = (await _request.Content.ReadAsMultipartAsync()).Contents;
-                var dataContent = contents.Where(x => x.HasData())?.FirstOrDefault();
-
-                T dataResult = default;
-                if (dataContent != null)
-                {
-                    var stringContent = await dataContent.ReadAsStringAsync();
-                    dataResult = JsonConvert.DeserializeObject<T>(stringContent);
-                }
-
-                var filesContents = contents.Where(content => content.HasFiles(_attribute.FileName));
-
-                var files = new List<MultipartFile>();
-
-                foreach (var uploadedFile in filesContents)
-                {
-                    var fileName = uploadedFile.Headers?.ContentDisposition?.GetEscapedContentDispositionFileName();
-                    var fileContents = await uploadedFile.ReadAsByteArrayAsync();
-                    files.Add(new MultipartFile
-                    {
-                        FileName = fileName,
-                        Content = fileContents
-                    });
-                }
-
-                return new MultipartRequestData<T>
-                {
-                    Data = dataResult,
-                    Files = files?.ToArray()
-                };
+                var stringContent = await dataContent.ReadAsStringAsync();
+                dataResult = JsonConvert.DeserializeObject<T>(stringContent);
             }
-            catch (Exception ex)
+
+            var filesContents = contents.Where(content => content.HasFiles(_attribute.FileName));
+
+            var files = new List<MultipartFile>();
+
+            foreach (var uploadedFile in filesContents)
             {
-                _logger.LogCritical(ex, "Error deserializing object from body");
-                throw ex;
+                var fileName = uploadedFile.Headers?.ContentDisposition?.GetEscapedContentDispositionFileName();
+                var fileContents = await uploadedFile.ReadAsByteArrayAsync();
+                files.Add(new MultipartFile
+                {
+                    FileName = fileName,
+                    Content = fileContents
+                });
             }
+
+            var container = new MultipartRequestData<T>
+            {
+                Data = dataResult,
+                Files = files?.ToArray()
+            };
+
+            if (_attribute.ValidateData)
+            {
+                container.Validate(dataResult);
+            }
+
+            return container;
         }
 
         public Type Type => typeof(object);

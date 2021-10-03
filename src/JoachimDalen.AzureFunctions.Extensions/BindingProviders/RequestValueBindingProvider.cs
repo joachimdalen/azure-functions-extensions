@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using JoachimDalen.AzureFunctions.Extensions.Attributes;
 using JoachimDalen.AzureFunctions.Extensions.Bindings;
 using Microsoft.Azure.WebJobs.Host.Bindings;
+using Microsoft.Azure.WebJobs.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
@@ -22,9 +23,11 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             typeof(object)
         };
 
-        public RequestValueBindingProvider(ILogger logger)
+        public RequestValueBindingProvider(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _logger = loggerFactory != null
+                ? loggerFactory.CreateLogger(LogCategories.Bindings)
+                : throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public Task<IBinding> TryCreateAsync(BindingProviderContext context)
