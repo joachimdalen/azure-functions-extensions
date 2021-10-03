@@ -5,7 +5,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.Models
     [Flags]
     public enum RequestValueLocation
     {
-        Query = 0,
-        Header = 1
+        Query = 1,
+        Header = 2
     }
 }

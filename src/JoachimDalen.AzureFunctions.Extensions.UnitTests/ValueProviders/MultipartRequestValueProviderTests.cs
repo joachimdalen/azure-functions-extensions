@@ -20,7 +20,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.UnitTests.ValueProviders
         [TestMethod]
         public async Task GetValueAsync_NoFiles_ReturnsData()
         {
-            var request = GetRequest(new MultipartRequestPayload
+            var request = TestUtils.GetMultipartRequest(new MultipartRequestPayload
             {
                 Email = "john@doe.local"
             });
@@ -44,12 +44,12 @@ namespace JoachimDalen.AzureFunctions.Extensions.UnitTests.ValueProviders
         [TestMethod]
         public async Task GetValueAsync_RequiredDataMissing_Validates()
         {
-            var request = GetRequest(new ValidatedMultipartRequestPayload
+            var request = TestUtils.GetMultipartRequest(new ValidatedMultipartRequestPayload
             {
                 Email = "john@doe.local"
             });
 
-            var attribute = new MultipartRequestAttribute {ValidateData = true};
+            var attribute = new MultipartRequestAttribute { ValidateData = true };
             var valueProvider =
                 new MultipartRequestValueProvider<ValidatedMultipartRequestPayload>(attribute, request, null);
 
@@ -78,7 +78,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.UnitTests.ValueProviders
             files.Add(new Tuple<HttpContent, string, string>(new ByteArrayContent(bytes2, 0, bytes2.Length), "file",
                 "goodbye.txt"));
 
-            var request = GetRequest(new ValidatedMultipartRequestPayload
+            var request = TestUtils.GetMultipartRequest(new ValidatedMultipartRequestPayload
             {
                 Email = "john@doe.local"
             }, files.ToArray());
@@ -103,30 +103,6 @@ namespace JoachimDalen.AzureFunctions.Extensions.UnitTests.ValueProviders
             }
         }
 
-        private HttpRequestMessage GetRequest(object payload, Tuple<HttpContent, string, string>[] files = null)
-        {
-            var multipart = new MultipartFormDataContent
-            {
-                new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8,
-                    MediaTypeNames.Application.Json)
-            };
-
-            if (files != null)
-            {
-                foreach (var (byteArrayContent, name, filename) in files)
-                {
-                    multipart.Add(byteArrayContent, name, filename);
-                }
-            }
-
-            var request = new HttpRequestMessage(HttpMethod.Post, "api/test/multipart")
-            {
-                Content = multipart
-            };
-
-            return request;
-        }
-
         class MultipartRequestPayload
         {
             public string Email { get; set; }
@@ -139,13 +115,5 @@ namespace JoachimDalen.AzureFunctions.Extensions.UnitTests.ValueProviders
 
             public string Email { get; set; }
         }
-
-        /*
-          var bytes = Encoding.UTF8.GetBytes("Hello");
-            var bytes2 = Encoding.UTF8.GetBytes("Goodbye");
-            multipart.Add(new ByteArrayContent(bytes, 0, bytes.Length), "file", "greeting.txt");
-            multipart.Add(new ByteArrayContent(bytes2, 0, bytes2.Length), "file", "goodbye.txt");
-
-         */
     }
 }

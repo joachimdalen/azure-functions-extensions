@@ -32,15 +32,48 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
         {
             object value = null;
 
-            switch (_attribute.Location)
+            if (_attribute.Location.HasFlag(RequestValueLocation.Header))
             {
-                case RequestValueLocation.Header when TryGetFromHeader(_attribute.Name, out var val):
+                if (TryGetFromHeader(_attribute.Name, out var val))
+                {
                     value = val;
-                    break;
-                case RequestValueLocation.Query when TryGetFromQuery(_attribute.Name, out var qVal):
-                    value = qVal;
-                    break;
+                }
+                else
+                {
+                    if (_attribute.Aliases != null)
+                    {
+                        foreach (var nameAlias in _attribute.Aliases)
+                        {
+                            if (TryGetFromHeader(nameAlias, out var aliasVal))
+                            {
+                                value = aliasVal;
+                            }
+                        }
+                    }
+                }
             }
+
+            if (value == null && _attribute.Location.HasFlag(RequestValueLocation.Query))
+            {
+                if (TryGetFromQuery(_attribute.Name, out var val))
+                {
+                    value = val;
+                }
+                else
+                {
+                    if (_attribute.Aliases != null)
+                    {
+                        foreach (var nameAlias in _attribute.Aliases)
+                        {
+                            if (TryGetFromQuery(nameAlias, out var aliasVal))
+                            {
+                                value = aliasVal;
+                            }
+                        }
+                    }
+                }
+            }
+
 
             if (Converters.TryCreateValue(value, _parameter.ParameterType, out var convertedValue))
             {
