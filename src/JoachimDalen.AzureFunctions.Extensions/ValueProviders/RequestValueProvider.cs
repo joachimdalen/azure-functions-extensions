@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using JoachimDalen.AzureFunctions.Extensions.Attributes;
@@ -40,15 +41,9 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
                 }
                 else
                 {
-                    if (_attribute.Aliases != null)
+                    if (_attribute.Aliases != null && TryGetFromHeader(_attribute.Aliases, out var aliasValue))
                     {
-                        foreach (var nameAlias in _attribute.Aliases)
-                        {
-                            if (TryGetFromHeader(nameAlias, out var aliasVal))
-                            {
-                                value = aliasVal;
-                            }
-                        }
+                        value = aliasValue;
                     }
                 }
             }
@@ -61,15 +56,9 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
                 }
                 else
                 {
-                    if (_attribute.Aliases != null)
+                    if (_attribute.Aliases != null && TryGetFromQuery(_attribute.Aliases, out var aliasValue))
                     {
-                        foreach (var nameAlias in _attribute.Aliases)
-                        {
-                            if (TryGetFromQuery(nameAlias, out var aliasVal))
-                            {
-                                value = aliasVal;
-                            }
-                        }
+                        value = aliasValue;
                     }
                 }
             }
@@ -95,6 +84,20 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
             return false;
         }
 
+        private bool TryGetFromHeader(string[] keys, out object val)
+        {
+            if (_request.Headers.Any(x => keys.Contains(x.Key)))
+            {
+                var entry = _request.Headers.FirstOrDefault(x => keys.Contains(x.Key));
+                var value = entry.Value;
+                val = value;
+                return true;
+            }
+
+            val = null;
+            return false;
+        }
+
         private bool TryGetFromQuery(string key, out object val)
         {
             if (_request.Query.TryGetValue(key, out var vals))
@@ -107,9 +110,23 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
             return false;
         }
 
+        private bool TryGetFromQuery(string[] keys, out object val)
+        {
+            if (_request.Query.Any(x => keys.Contains(x.Key)))
+            {
+                var entry = _request.Query.FirstOrDefault(x => keys.Contains(x.Key));
+                var value = entry.Value;
+                val = value;
+                return true;
+            }
+
+            val = null;
+            return false;
+        }
+
         public string ToInvokeString()
         {
-            return "My invoke string";
+            return string.Empty;
         }
 
         public Type Type { get; }
