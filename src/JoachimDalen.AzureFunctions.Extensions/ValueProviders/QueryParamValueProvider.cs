@@ -32,133 +32,87 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
 
         public async Task<object> GetValueAsync()
         {
-            try
+            if (_isUserTypeBinding)
             {
-                if (_isUserTypeBinding)
+                var isContainerType = BindingHelpers.IsOfGenericType(_parameter, typeof(QueryParamContainer<>));
+                object container = null;
+                PropertyInfo[] properties;
+                Type containerValueType = null;
+                if (isContainerType)
                 {
-                    var isContainerType = BindingHelpers.IsOfGenericType(_parameter, typeof(QueryParamContainer<>));
-                    object container = null;
-                    PropertyInfo[] properties;
-                    Type containerValueType = null;
-                    if (isContainerType)
-                    {
-                        containerValueType = _parameter.ParameterType.GetGenericArguments()?.FirstOrDefault();
-                        container = Activator.CreateInstance(containerValueType);
-                        properties = containerValueType.GetProperties();
-                    }
-                    else
-                    {
-                        container = Activator.CreateInstance(_parameter.ParameterType);
-                        properties = _parameter.ParameterType.GetProperties();
-                    }
-
-
-                    foreach (var propertyInfo in properties)
-                    {
-                        var attribute = propertyInfo.GetCustomAttribute<QueryParamValueAttribute>();
-                        var name = attribute?.Name ?? propertyInfo.Name;
-                        if (!_request.Query.TryGetValue(name, out var queryValues))
-                        {
-                            continue;
-                        }
-
-                        var value = queryValues.First();
-
-                        if (!TryCreateValue(value, propertyInfo.PropertyType, out var convertedValue))
-                        {
-                            continue;
-                        }
-
-                        if (propertyInfo.CanWrite)
-                        {
-                            propertyInfo.SetValue(container, convertedValue);
-                        }
-                    }
-
-                    if (isContainerType)
-                    {
-                        var type = typeof(QueryParamContainer<>).MakeGenericType(containerValueType);
-                        var containerInstance = Activator.CreateInstance(type);
-
-                        if (_attribute.Validate && containerInstance is IValidatable validatable)
-                        {
-                            validatable.Validate(container);
-                        }
-                        
-                        
-                        var param = type.GetProperty("Params");
-                        if (param != null && param.CanWrite)
-                        {
-                            param.SetValue(containerInstance, container);
-                        }
-
-                        return containerInstance;
-                    }
-
-                    return container;
+                    containerValueType = _parameter.ParameterType.GetGenericArguments()?.FirstOrDefault();
+                    container = Activator.CreateInstance(containerValueType);
+                    properties = containerValueType.GetProperties();
+                }
+                else
+                {
+                    container = Activator.CreateInstance(_parameter.ParameterType);
+                    properties = _parameter.ParameterType.GetProperties();
                 }
 
 
-                if (!_request.Query.TryGetValue(_attribute.Name, out var values))
+                foreach (var propertyInfo in properties)
                 {
-                    return null;
+                    var attribute = propertyInfo.GetCustomAttribute<QueryParamValueAttribute>();
+                    var name = attribute?.Name ?? propertyInfo.Name;
+                    if (!_request.Query.TryGetValue(name, out var queryValues))
+                    {
+                        continue;
+                    }
+
+                    var value = queryValues.First();
+
+                    if (!Converters.TryCreateValue(value, propertyInfo.PropertyType, out var convertedValue))
+                    {
+                        continue;
+                    }
+
+                    if (propertyInfo.CanWrite)
+                    {
+                        propertyInfo.SetValue(container, convertedValue);
+                    }
                 }
 
-                var rawValue = values.First();
-
-                if (!typeof(T).IsAssignableFrom(rawValue.GetType()))
+                if (isContainerType)
                 {
-                    return null;
+                    var type = typeof(QueryParamContainer<>).MakeGenericType(containerValueType);
+                    var containerInstance = Activator.CreateInstance(type);
+
+                    if (_attribute.Validate && containerInstance is IValidatable validatable)
+                    {
+                        validatable.Validate(container);
+                    }
+
+
+                    var param = type.GetProperty("Params");
+                    if (param != null && param.CanWrite)
+                    {
+                        param.SetValue(containerInstance, container);
+                    }
+
+                    return containerInstance;
                 }
 
-                return rawValue;
+                return container;
             }
-            catch (Exception ex)
+
+
+            if (!_request.Query.TryGetValue(_attribute.Name, out var values))
             {
-                _logger.LogCritical(ex, "Error deserializing object from body");
-                throw ex;
+                return null;
             }
+
+            var rawValue = values.First();
+
+            if (!typeof(T).IsAssignableFrom(rawValue.GetType()))
+            {
+                return null;
+            }
+
+            return rawValue;
         }
 
         public Type Type => typeof(object);
         public string ToInvokeString() => string.Empty;
-
-        private bool TryCreateValue(object input, Type inputType, out object value)
-        {
-            value = default;
-            var convertType = Nullable.GetUnderlyingType(inputType) ?? inputType;
-
-            if (input == null) return default;
-
-            if (convertType == typeof(string))
-            {
-                value = input.ToString();
-                return true;
-            }
-
-            if (convertType == typeof(Guid))
-            {
-                if (!Guid.TryParse(input.ToString(), out Guid guid))
-                {
-                    return false;
-                }
-
-                value = guid;
-                return true;
-            }
-
-            if (convertType == typeof(int))
-            {
-                if (!int.TryParse(input.ToString(), out int intVal))
-                {
-                    return false;
-                }
-
-                value = intVal;
-                return true;
-            }
-
-            return false;
-        }
     }
 }

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
 {
-    public class QueryParamBindingProvider : IBindingProvider
+    public class RequestValueBindingProvider : IBindingProvider
     {
         private readonly ILogger _logger;
 
@@ -23,7 +23,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             typeof(object)
         };
 
-        public QueryParamBindingProvider(ILoggerFactory loggerFactory)
+        public RequestValueBindingProvider(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory != null
                 ? loggerFactory.CreateLogger(LogCategories.Bindings)
@@ -38,7 +38,7 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             }
 
             var parameter = context.Parameter;
-            var attribute = context.Parameter.GetCustomAttribute<QueryParamAttribute>();
+            var attribute = context.Parameter.GetCustomAttribute<RequestValueAttribute>();
 
             if (attribute == null)
             {
@@ -50,12 +50,12 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             if (!isSupportedTypeBinding && !isUserTypeBinding)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                    "Can't bind QueryParamAttribute to type '{0}'.", parameter.ParameterType));
+                    "Can't bind RequestValueAttribute to type '{0}'.", parameter.ParameterType));
             }
 
-            var type = typeof(QueryParamBinding<>).MakeGenericType(context.Parameter.ParameterType);
             var binding =
-                (IBinding)Activator.CreateInstance(type, _logger, attribute, isUserTypeBinding, context.Parameter);
+                (IBinding)Activator.CreateInstance(typeof(RequestValueBinding), _logger, attribute, isUserTypeBinding,
+                    context.Parameter);
 
             return Task.FromResult(binding);
         }

@@ -6,3 +6,4 @@ Bindings:
 
 - [Query Parameter](./docs/query-parameter.md)
 - [Multipart Request](./docs/multipart-request.md)
+- [Request Value Lookup](./docs/request-value-lookup.md)

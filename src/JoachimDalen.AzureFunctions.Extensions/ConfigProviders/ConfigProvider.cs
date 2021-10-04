@@ -7,17 +7,18 @@ namespace JoachimDalen.AzureFunctions.Extensions.ConfigProviders
 {
     public class ConfigProvider : IExtensionConfigProvider
     {
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public ConfigProvider(ILogger logger)
+        public ConfigProvider(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _loggerFactory = loggerFactory;
         }
 
         public void Initialize(ExtensionConfigContext context)
         {
-            context.AddBindingRule<QueryParamAttribute>().Bind(new QueryParamBindingProvider(_logger));
-            context.AddBindingRule<MultipartRequestAttribute>().Bind(new MultipartBindingProvider(_logger));
+            context.AddBindingRule<QueryParamAttribute>().Bind(new QueryParamBindingProvider(_loggerFactory));
+            context.AddBindingRule<MultipartRequestAttribute>().Bind(new MultipartBindingProvider(_loggerFactory));
+            context.AddBindingRule<RequestValueAttribute>().Bind(new RequestValueBindingProvider(_loggerFactory));
         }
     }
 }

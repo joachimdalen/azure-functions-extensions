@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -47,6 +48,27 @@ namespace Integration.FunctionApp.IntegrationTests.Functions
             Assert.AreEqual(jsonData.Email, model.Email);
             Assert.AreEqual(jsonData.Username, model.Username);
             Assert.That.BlobExists("multipart-files", "greeting.txt");
+        }
+
+        [TestMethod]
+        [StartFunctions(nameof(MultipartHttpTrigger))]
+        public async Task MultipartHttpTrigger_ContentWithoutFilesAndInvalidBody_ReturnsBadRequest()
+        {
+            var multipart = new MultipartFormDataContent();
+            var jsonData = new MultipartRequestBodyData
+            {
+                Email = "john@doe.local"
+            };
+            multipart.Add(new StringContent(JsonConvert.SerializeObject(jsonData), Encoding.UTF8,
+                MediaTypeNames.Application.Json));
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/test/multipart")
+            {
+                Content = multipart
+            };
+
+            var response = await Fixture.Client.SendAsync(request);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }
