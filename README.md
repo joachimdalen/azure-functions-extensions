@@ -4,7 +4,7 @@
 
 ---
 
-A set of extensions and bindings for Azure Functions.
+A set of extensions and bindings for Azure Functions. For full samples, look at the integration function app.
 
 Bindings:
 
