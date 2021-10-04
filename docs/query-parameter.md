@@ -63,3 +63,23 @@ public static async Task<IActionResult> RunAsync([
     return new OkObjectResult(data);
 }
 ```
+
+## Validation
+
+Query parameter POCO can be wrapped in the container `QueryParamContainer`. When validation is enabled in the binding attribute this container will contain the validation result, and potential error messages.
+
+Usage in functions
+
+```csharp
+[FunctionName(nameof(ValidateQueryClassHttpTrigger))]
+public static async Task<IActionResult> RunAsync(
+    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/class-validate")] HttpRequest req, ILogger log,
+    [QueryParam(true)] QueryParamContainer<QueryParamValuesWithValidation> queryParamContainer)
+{
+    if (!queryParamContainer.IsValid)
+    {
+        return new BadRequestObjectResult(queryParamContainer.ValidationResults);
+    }
+    return new OkObjectResult(queryParamContainer.Params);
+}
+```
