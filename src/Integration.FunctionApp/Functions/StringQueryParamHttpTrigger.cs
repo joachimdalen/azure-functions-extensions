@@ -14,11 +14,12 @@ namespace Integration.FunctionApp.Functions
         [FunctionName(nameof(StringQueryParamHttpTrigger))]
         public static async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/name")]
-            HttpRequest req, ILogger log, [QueryParam("name")] string name)
+            HttpRequest req, ILogger log, [QueryParam("name")] string name, [QueryParam("values")] string[] values)
         {
-            var data = new NameModel
+            var data = new NameValueModel
             {
-                Name = name
+                Name = name,
+                Values = values
             };
             return new OkObjectResult(data);
         }

@@ -20,7 +20,10 @@ namespace JoachimDalen.AzureFunctions.Extensions.BindingProviders
             typeof(bool),
             typeof(int),
             typeof(string),
-            typeof(object)
+            typeof(object),
+            typeof(string[]),
+            typeof(int[]),
+            typeof(Guid[]),
         };
 
         public QueryParamBindingProvider(ILoggerFactory loggerFactory)

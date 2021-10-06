@@ -1,7 +1,8 @@
 namespace Integration.FunctionApp.Models
 {
-    public class NameModel
+    public class NameValueModel
     {
         public string Name { get; set; }
+        public string[] Values { get; set; }
     }
 }
