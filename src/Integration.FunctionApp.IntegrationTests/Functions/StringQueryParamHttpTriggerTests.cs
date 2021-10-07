@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using JoachimDalen.AzureFunctions.TestUtils.Attributes;
 using Integration.FunctionApp.Functions;
@@ -36,6 +37,24 @@ namespace Integration.FunctionApp.IntegrationTests.Functions
             var nameModel = JsonConvert.DeserializeObject<NameValueModel>(responseBody);
 
             Assert.AreEqual(2, nameModel.Values.Length);
+        }
+        
+        [TestMethod]
+        [StartFunctions(nameof(StringQueryParamHttpTrigger))]
+        public async Task StringQueryParamHttpTrigger_QueryParamsWithGuidArray_ReturnsValue()
+        {
+            var idOne = Guid.NewGuid();
+            var idTwo = Guid.NewGuid();
+            var response = await Fixture.Client.GetAsync($"/api/test/query/name?name=hello&ids={idOne.ToString()}&ids={idTwo.ToString()}");
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.IsTrue(response.IsSuccessStatusCode);
+            var nameModel = JsonConvert.DeserializeObject<NameValueModel>(responseBody);
+
+            Assert.AreEqual(2, nameModel.Ids.Length);
+            Assert.AreEqual(idOne.ToString(), nameModel.Ids[0].ToString());
+            Assert.AreEqual(idTwo.ToString(), nameModel.Ids[1].ToString());
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Integration.FunctionApp.Models;
 using JoachimDalen.AzureFunctions.Extensions.Attributes;
@@ -14,12 +15,16 @@ namespace Integration.FunctionApp.Functions
         [FunctionName(nameof(StringQueryParamHttpTrigger))]
         public static async Task<IActionResult> RunAsync(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "test/query/name")]
-            HttpRequest req, ILogger log, [QueryParam("name")] string name, [QueryParam("values")] string[] values)
+            HttpRequest req, ILogger log, 
+            [QueryParam("name")] string name, 
+            [QueryParam("values")] string[] values,
+            [QueryParam("ids")] Guid[] ids)
         {
             var data = new NameValueModel
             {
                 Name = name,
-                Values = values
+                Values = values,
+                Ids = ids,
             };
             return new OkObjectResult(data);
         }

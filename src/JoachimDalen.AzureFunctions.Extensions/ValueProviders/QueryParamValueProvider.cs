@@ -104,9 +104,12 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
             }
 
 
-            if (_parameter.ParameterType == typeof(string[]))
+            if (_parameter.ParameterType.IsArray)
             {
-                selectedValue = values.ToArray();
+                if (!Converters.TryCreateArray(values.ToArray(), _parameter.ParameterType, out selectedValue))
+                {
+                    selectedValue = null;
+                }
             }
             else
             {
@@ -114,11 +117,6 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
                 {
                     selectedValue = null;
                 }
-            }
-
-            if (!typeof(T).IsAssignableFrom(selectedValue.GetType()))
-            {
-                return null;
             }
 
             return selectedValue;
