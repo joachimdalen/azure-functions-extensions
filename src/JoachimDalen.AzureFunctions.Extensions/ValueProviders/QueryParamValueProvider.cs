@@ -97,19 +97,29 @@ namespace JoachimDalen.AzureFunctions.Extensions.ValueProviders
             }
 
 
+            object selectedValue;
             if (!_request.Query.TryGetValue(_attribute.Name, out var values))
             {
                 return null;
             }
 
-            var rawValue = values.First();
 
-            if (!typeof(T).IsAssignableFrom(rawValue.GetType()))
+            if (_parameter.ParameterType.IsArray)
             {
-                return null;
+                if (!Converters.TryCreateArray(values.ToArray(), _parameter.ParameterType, out selectedValue))
+                {
+                    selectedValue = null;
+                }
+            }
+            else
+            {
+                if (!Converters.TryCreateValue(values.First(), _parameter.ParameterType, out selectedValue))
+                {
+                    selectedValue = null;
+                }
             }
 
-            return rawValue;
+            return selectedValue;
         }
 
         public Type Type => typeof(object);
