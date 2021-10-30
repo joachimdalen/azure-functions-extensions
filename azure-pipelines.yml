@@ -16,6 +16,10 @@ parameters:
     type: string
     displayName: 'Package Version'
     default: 'not-set'
+  - name: "IS_PREVIEW"
+    type: boolean
+    default: false
+    displayName: "Is Pre-Release"
   - name: "INCREASE_MAJOR"
     type: boolean
     default: false
@@ -93,7 +97,7 @@ stages:
             name: SetVersion
             inputs:
               filePath: '$(Build.SourcesDirectory)/ci/get-updated-package-version.ps1'
-              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }} -PackageName $(PACKAGE_NAME)'
+              arguments: '-IncreaseMajor $${{ parameters.INCREASE_MAJOR }} -IncreaseMinor $${{ parameters.INCREASE_MINOR }} -IncreasePatch $${{ parameters.INCREASE_PATCH }} -SelectedVersion ${{ parameters.SELECTED_PACKAGE_VERSION }} -PackageName $(PACKAGE_NAME) -IsPreview $${{ parameters.IS_PREVIEW }}'
               failOnStderr: true
               showWarnings: true
               pwsh: true
@@ -101,7 +105,7 @@ stages:
             displayName: 'Pack Nuget - $(BUILD_CONFIGURATION)'
             inputs:
               command: 'pack'
-              packagesToPack: '$(Build.SourcesDirectory)/src/JoachimDalen.AzureFunctions.Extensions/JoachimDalen.AzureFunctions.Extensions.csproj'
+              packagesToPack: '$(Build.SourcesDirectory)/src/$(PACKAGE_NAME)/$(PACKAGE_NAME).csproj'
               configuration: '$(BUILD_CONFIGURATION)'
               packDirectory: '$(Build.ArtifactStagingDirectory)/nuget'
               nobuild: true
@@ -125,12 +129,22 @@ stages:
               targetPath: "$(Build.ArtifactStagingDirectory)/aftu"
               artifact: "aftu-logs"
               publishLocation: "pipeline"
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Release Notes'
+            inputs:
+              targetPath: '$(Build.SourcesDirectory)/release-notes/v$(SetVersion.UPDATED_PACKAGE_VERSION).md'
+              artifact: "release-notes"
+              publishLocation: "pipeline"
   - stage: publish_nuget
     displayName: 'Publish package'
     condition: eq(variables.isMaster, true)
     dependsOn: 'buildAndTest'
     jobs:
       - deployment:
+        variables:
+          - group: 'nuget-azure-functions'
+          - name: PACKAGE_VERSION
+            value: $[ stageDependencies.buildAndTest.Build.outputs['SetVersion.UPDATED_PACKAGE_VERSION'] ]
         displayName: 'Publish package'
         environment: 'nuget-prod'
         strategy:
@@ -140,10 +154,23 @@ stages:
                 - download: none
                 - download: current
                   artifact: 'nuget-package'
-                - task: DotNetCoreCLI@2
+                - download: current
+                  artifact: 'release-notes'
+                - task: Bash@3
                   displayName: 'Push nuget package'
                   inputs:
-                    command: 'push'
-                    packagesToPush: '$(Pipeline.Workspace)/nuget-package/*.nupkg'
-                    nuGetFeedType: 'external'
-                    publishFeedCredentials: 'nuget-azure-functions'
+                    targetType: inline
+                    script: 'dotnet nuget push $(Pipeline.Workspace)/nuget-package/$(PACKAGE_NAME).$(PACKAGE_VERSION).nupkg -k $(NUGET_API_KEY) -s https://api.nuget.org/v3/index.json'
+                - task: GitHubRelease@1
+                  displayName: 'Create GitHub Release'
+                  inputs:
+                    gitHubConnection: github-azure-functions
+                    repositoryName: joachimdalen/azure-functions-extensions
+                    tagSource: userSpecifiedTag
+                    tag: v$(PACKAGE_VERSION)
+                    title: 'v$(PACKAGE_VERSION): Update'
+                    assets: $(Pipeline.Workspace)/nuget-package/*.nupkg
+                    addChangeLog: false
+                    isPreRelease: $${{ parameters.IS_PREVIEW }}
+                    releaseNotesSource: filePath
+                    releaseNotesFilePath: $(Pipeline.Workspace)/release-notes/v$(PACKAGE_VERSION).md
